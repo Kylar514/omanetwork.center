@@ -1,10 +1,11 @@
 {
   "schemaVersion": 1,
-  "id": "omarchy.network",
-  "name": "Network",
+  "id": "omanetwork.center",
+  "name": "Centered Network",
   "version": "1.0.0",
-  "author": "Omarchy",
-  "description": "Wi-Fi list and connection state",
+  "author": "Kylar514",
+  "license": "MIT",
+  "description": "Omarchy network controls in a screen-centered popup",
   "kinds": [
     "bar-widget"
   ],
@@ -12,9 +13,12 @@
     "barWidget": "Panel.qml"
   },
   "barWidget": {
-    "displayName": "Network",
-    "description": "Wi-Fi list and connection state",
+    "displayName": "Centered Network",
+    "description": "Omarchy network controls in a screen-centered popup",
     "category": "Network",
     "allowMultiple": false
+  },
+  "omarchy": {
+    "clonedFrom": "omarchy.network"
   }
 }

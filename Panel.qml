@@ -1040,8 +1040,13 @@ Panel {
     bar: root.bar
     open: root.opened
     focusTarget: keyCatcher
+    centerOnBar: true
     contentWidth: panel.fittedContentWidth(Style.space(380))
-    contentHeight: panel.fittedContentHeight(column.implicitHeight)
+    readonly property int centeredContentHeight: Math.round(Math.min(
+      column.implicitHeight + panel.verticalContentInset,
+      Math.max(panel.verticalContentInset, panel.screenH - Math.max(panel.margin * 2, panel.barH * 2))))
+    contentHeight: centeredContentHeight
+    gap: Math.max(0, Math.round((panel.screenH - panel.contentHeight) / 2 - panel.barH))
 
     // Catches all unhandled keys for keyboard navigation. AfterItem priority
     // lets the passphrase TextField (a child via focus chain) get its keys
@@ -1143,7 +1148,8 @@ Panel {
       onCloseRequested: root.close()
       onTabRequested: function(direction) { root.switchPanel(direction) }
       onTextKey: function(t) {
-        if (t === "r" || t === "R") root.refresh()
+        if (t === "q" || t === "Q") root.close()
+        else if (t === "r" || t === "R") root.refresh()
         else if (t === "w" || t === "W") root.toggleNetwork()
       }
 
