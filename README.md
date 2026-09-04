@@ -1,8 +1,9 @@
 # Centered Network
 
 Omarchy's network bar widget with its popup centered on the active display.
-It keeps current upstream behavior, including captive-portal handling, and the
-local `q` shortcut for closing the panel.
+It keeps current upstream behavior, including captive-portal handling, and
+local keyboard controls: `q` closes the panel, while `gg` and `G` jump to the
+first and last selectable rows.
 
 ## Install
 

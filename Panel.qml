@@ -117,6 +117,7 @@ Panel {
   property int selectedIndex: -1
   property bool wifiActionFocused: false
   property bool cursorActive: false
+  property bool awaitingSecondG: false
 
   // Keyboard focus zone for the panel. j/k crosses row boundaries:
   // header actions ⇄ portal ⇄ band ⇄ DNS row ⇄ Wi-Fi networks. h/l move
@@ -236,6 +237,58 @@ Panel {
     headerIndex = index
   }
 
+  function cancelVimPrefix() {
+    awaitingSecondG = false
+    vimPrefixTimer.stop()
+  }
+
+  function moveCursorToStart() {
+    cancelVimPrefix()
+    if (headerActionCount > 0) {
+      focusSection = "header"
+      headerIndex = 0
+    } else if (hasCaptivePortal) {
+      focusSection = "portal"
+    } else if (canSelectBand) {
+      focusSection = "band"
+      bandAutoFocused = true
+    } else {
+      focusSection = "dns"
+    }
+    wifiActionFocused = false
+    cursorActive = true
+  }
+
+  function moveCursorToEnd() {
+    cancelVimPrefix()
+    if (wifiNetworks.length > 0) {
+      focusSection = "wifi"
+      selectedIndex = wifiNetworks.length - 1
+    } else {
+      focusSection = "dns"
+    }
+    wifiActionFocused = false
+    cursorActive = true
+  }
+
+  function handleVimBoundaryMotion(text) {
+    if (text === "G") {
+      moveCursorToEnd()
+      return true
+    }
+    if (text !== "g") {
+      cancelVimPrefix()
+      return false
+    }
+    if (awaitingSecondG) {
+      moveCursorToStart()
+    } else {
+      awaitingSecondG = true
+      vimPrefixTimer.restart()
+    }
+    return true
+  }
+
   function selectDnsByDelta(delta) {
     dnsIndex = Math.max(0, Math.min(dnsProviders.length - 1, dnsIndex + delta))
   }
@@ -320,6 +373,7 @@ Panel {
   // KeyboardPanel primes layer-shell focus whenever the panel opens. That's
   // what makes the SUPER+CTRL+W keybind land here with navigation ready.
   onOpenedChanged: {
+    cancelVimPrefix()
     if (opened) {
       refresh(true)
       selectedIndex = wifiNetworks.length > 0 ? 0 : -1
@@ -347,6 +401,12 @@ Panel {
       internetPingPacketLoss = 0
       setScannerEnabled(false)
     }
+  }
+
+  Timer {
+    id: vimPrefixTimer
+    interval: 1000
+    onTriggered: root.awaitingSecondG = false
   }
 
   // When the passphrase prompt closes (Esc / Cancel / success) restore
@@ -1059,6 +1119,7 @@ Panel {
       blocked: root.passwordSsid !== ""
 
       onMoveRequested: function(dx, dy) {
+        root.cancelVimPrefix()
         if (!root.cursorActive) {
           root.cursorActive = true
           if (dy >= 0) return
@@ -1148,6 +1209,7 @@ Panel {
       onCloseRequested: root.close()
       onTabRequested: function(direction) { root.switchPanel(direction) }
       onTextKey: function(t) {
+        if (root.handleVimBoundaryMotion(t)) return
         if (t === "q" || t === "Q") root.close()
         else if (t === "r" || t === "R") root.refresh()
         else if (t === "w" || t === "W") root.toggleNetwork()
